@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gromix Vizitka</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--bg:#F4F6FA;--surface:#FFFFFF;--ink:#0F172A;--muted:#5B6578;--line:#DDE3EE;--accent:#2F5BFF;--accent-ink:#FFFFFF;--ok:#15803D;--warn:#B45309;--bad:#B91C1C;--rec:#DC2626;--font:'Manrope',system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0C1220;--surface:#141C2E;--ink:#E8EDF7;--muted:#97A3BB;--line:#26314A;--accent:#6C8BFF;--accent-ink:#0C1220;--ok:#4ADE80;--warn:#FBBF24;--bad:#F87171;--rec:#F87171;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;padding:28px max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:24px;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:start}
+@media (max-width:820px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.head{grid-column:1/-1}
+h1{font-size:28px;line-height:1.15;margin:0 0 4px;font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:520px){.grid{grid-template-columns:minmax(0,1fr)}}
+.full{grid-column:1/-1}
+.sec{display:flex;flex-direction:column;gap:20px}
+label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:13px;min-width:0}
+label small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=email],input[type=tel],textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+textarea{min-height:96px;resize:vertical}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hp{position:absolute;left:-9999px;opacity:0}
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center;background:var(--bg);cursor:pointer;min-width:0}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.drop .t{min-width:0;flex:1}.drop .t b{display:block;font-size:13px}
+.drop .t span{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.thumb{width:52px;height:52px;border-radius:50%;background:var(--line);flex:none;object-fit:cover}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.rec{background:var(--rec);color:#fff}
+.btn[disabled]{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.msg{font-size:13px;color:var(--muted);margin:0}.msg.bad{color:var(--bad)}
+.voice{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:12px}
+.read{font-size:14px;line-height:1.6;margin:0;padding:12px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;min-width:44px}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden;flex:1;min-width:80px}
+.meter i{display:block;height:100%;width:0;background:var(--rec)}
+audio{width:100%}
+.stat{display:inline-block;font-size:12px;font-weight:700;border-radius:99px;padding:3px 10px;border:1px solid var(--line)}
+.stat.ok{color:var(--ok);border-color:var(--ok)}.stat.work{color:var(--warn);border-color:var(--warn)}.stat.bad{color:var(--bad);border-color:var(--bad)}
+ol.tok{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+ol.tok li{display:flex;gap:10px;align-items:center;color:var(--muted)}
+ol.tok li i{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex:none}
+ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:var(--ok)}
+.res{display:flex;flex-direction:column;gap:14px;align-items:flex-start;margin-top:16px}
+.qr{background:#fff;padding:12px;border-radius:12px;border:1px solid var(--line);width:220px;max-width:100%}
+.qr svg{display:block;width:100%;height:auto}
+.link{font-family:ui-monospace,Menlo,monospace;font-size:13px;overflow-wrap:anywhere;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.empty{color:var(--muted);margin:0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>Digitalna vizitka</h1>
+    <p class="sub">Unesi podatke, sliku i glas. Iz toga se prave asistent, vizitka sa dodirnim poljima, link i QR kod.</p>
+  </div>
+
+  <form class="card sec" id="forma" autocomplete="off">
+    <div>
+      <h2>Podaci</h2>
+      <div class="grid">
+        <label>Ime i prezime<input id="ime" type="text" required></label>
+        <label>Pozicija<input id="titula" type="text" placeholder="npr. Direktor prodaje"></label>
+        <label class="full">Kompanija<input id="firma" type="text"></label>
+        <label>Telefon<input id="tel" type="tel"></label>
+        <label>Imejl<input id="mail" type="email"></label>
+        <label>Veb-sajt<input id="web" type="text" placeholder="firma.rs"></label>
+        <label>Adresa ili grad<input id="adresa" type="text"></label>
+        <label class="full">O vama <small>Asistent ovo koristi da odgovara posetiocima. Piši čime se baviš, za koga radiš, šta nudiš.</small><textarea id="o"></textarea></label>
+        <input class="hp" id="website_hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+      </div>
+    </div>
+
+    <div>
+      <h2>Slike</h2>
+      <div class="sec" style="gap:12px">
+        <label class="drop"><input id="foto" type="file" accept="image/png,image/jpeg,image/webp"><img class="thumb" id="fotoImg" alt="" hidden><span class="thumb" id="fotoPh"></span><span class="t"><b>Slika osobe</b><span id="fotoT">Izaberi sliku (JPG, PNG)</span></span></label>
+        <label class="drop"><input id="vizitka" type="file" accept="image/png,image/jpeg,image/webp"><span class="thumb"></span><span class="t"><b>Slika vizitke <small>(nije obavezno)</small></b><span id="vizT">Ako nemaš, pravi se iz unetih podataka</span></span></label>
+      </div>
+    </div>
+
+    <div>
+      <h2>Glas</h2>
+      <div class="voice">
+        <p class="read" id="tekst">Pročitaj ovaj tekst običnim tempom, kao da pričaš sa nekim: „Dobar dan, zovem se kao što sam upisao gore i radim ono što volim. Kad me pitaju čime se bavim, objasnim to jednostavno i bez velikih reči. Ako vam zatreba pomoć ili savet, slobodno se javite, uvek rado odgovorim.“ Možeš i svojim rečima, bitno je da govoriš 20 do 40 sekundi.</p>
+        <div class="row">
+          <button type="button" class="btn rec" id="snimi">Snimi glas</button>
+          <button type="button" class="btn ghost" id="stop" hidden>Zaustavi</button>
+          <span class="timer" id="tajmer" hidden>0:00</span>
+          <span class="meter" id="meterW" hidden><i id="meter"></i></span>
+        </div>
+        <audio id="plej" controls hidden></audio>
+        <div class="row">
+          <label class="drop" style="flex:1"><input id="glasFajl" type="file" accept="audio/*"><span class="t"><b>Ili izaberi gotov snimak</b><span id="glasT">MP3, WAV, M4A</span></span></label>
+        </div>
+        <p class="msg" id="glasMsg" role="status">Tiha prostorija, telefon ili mikrofon na 20 cm, bez muzike u pozadini.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="posalji" type="submit">Napravi vizitku</button>
+      <span class="msg" id="poruka" role="status"></span>
+    </div>
+  </form>
+
+  <section class="card" aria-live="polite">
+    <h2>Tok</h2>
+    <p class="empty" id="tokPrazno">Kad pošalješ podatke, ovde vidiš korake i na kraju link i QR kod.</p>
+    <div id="tok" hidden>
+      <span class="stat" id="stat"></span>
+      <ol class="tok" id="koraci"></ol>
+      <div class="res" id="rez" hidden>
+        <div class="qr" id="qr"></div>
+        <div class="link" id="link"></div>
+        <div class="row">
+          <button class="btn" id="kopiraj" type="button">Kopiraj link</button>
+          <button class="btn ghost" id="snimiQr" type="button">Sačuvaj QR</button>
+        </div>
+        <p class="msg" id="kopMsg"></p>
+      </div>
+      <p class="msg" id="greska" hidden></p>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var KORACI=[["asistent","Asistent sa promptom"],["glas","Glas kloniran i dodat asistentu"],["kartica","Kontakt kartica"],["prezentacija","Vizitka sa dodirnim poljima"],["audio","Audio generisan"],["link","Link i QR kod"]];
+var jobId=null,glasBlob=null,glasIme="glas.wav",cur=null,poll=null;
+try{jobId=localStorage.getItem("vizitkaJob")}catch(e){}
+
+/* ---------- slike ---------- */
+function fileLabel(f){return f.name+" ("+Math.round(f.size/1024)+" KB)"}
+$("foto").addEventListener("change",function(){var f=this.files[0];if(!f)return;$("fotoT").textContent=fileLabel(f);$("fotoImg").src=URL.createObjectURL(f);$("fotoImg").hidden=false;$("fotoPh").hidden=true});
+$("vizitka").addEventListener("change",function(){var f=this.files[0];if(f)$("vizT").textContent=fileLabel(f)});
+function smanji(file,maxSide,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){var s=Math.min(1,maxSide/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);c.toBlob(function(b){URL.revokeObjectURL(u);b?res(b):rej(new Error("slika"))},"image/jpeg",q)};img.onerror=function(){rej(new Error("Slika se ne može pročitati"))};img.src=u})}
+
+/* ---------- glas: snimanje i pretvaranje u WAV 24 kHz mono ---------- */
+var rec=null,stream=null,chunks=[],t0=0,tick=null,ctx=null,analyser=null,raf=null;
+function fmt(s){return Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0")}
+function setGlas(blob,ime,info){glasBlob=blob;glasIme=ime;var p=$("plej");p.src=URL.createObjectURL(blob);p.hidden=false;$("glasMsg").textContent=info;$("glasMsg").className="msg"}
+function wav(buf){
+  var ch=buf.getChannelData(0),n=ch.length,out=new DataView(new ArrayBuffer(44+n*2));
+  function w(o,s){for(var i=0;i<s.length;i++)out.setUint8(o+i,s.charCodeAt(i))}
+  w(0,"RIFF");out.setUint32(4,36+n*2,true);w(8,"WAVEfmt ");out.setUint32(16,16,true);out.setUint16(20,1,true);out.setUint16(22,1,true);
+  out.setUint32(24,buf.sampleRate,true);out.setUint32(28,buf.sampleRate*2,true);out.setUint16(32,2,true);out.setUint16(34,16,true);w(36,"data");out.setUint32(40,n*2,true);
+  for(var i=0;i<n;i++){var v=Math.max(-1,Math.min(1,ch[i]));out.setInt16(44+i*2,v<0?v*0x8000:v*0x7FFF,true)}
+  return new Blob([out],{type:"audio/wav"});
+}
+async function uWav(blob){
+  var ab=await blob.arrayBuffer(),AC=window.AudioContext||window.webkitAudioContext,c=new AC();
+  var dec=await new Promise(function(r,j){c.decodeAudioData(ab,r,j)});c.close&&c.close();
+  var sr=24000,len=Math.ceil(dec.duration*sr),oc=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(1,len,sr),s=oc.createBufferSource();
+  s.buffer=dec;s.connect(oc.destination);s.start();
+  return wav(await oc.startRendering());
+}
+$("snimi").addEventListener("click",async function(){
+  var m=$("glasMsg");m.className="msg";
+  if(!navigator.mediaDevices||!window.MediaRecorder){m.textContent="Ovaj browser ne podržava snimanje. Izaberi gotov snimak.";m.className="msg bad";return}
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}
+  catch(e){m.textContent="Mikrofon nije dozvoljen. Dozvoli ga u browseru ili izaberi gotov snimak.";m.className="msg bad";return}
+  chunks=[];rec=new MediaRecorder(stream);
+  rec.ondataavailable=function(e){if(e.data.size)chunks.push(e.data)};
+  rec.onstop=async function(){
+    clearInterval(tick);cancelAnimationFrame(raf);stream.getTracks().forEach(function(t){t.stop()});
+    $("stop").hidden=true;$("tajmer").hidden=true;$("meterW").hidden=true;$("snimi").hidden=false;$("snimi").textContent="Snimi ponovo";
+    var dur=(Date.now()-t0)/1000;
+    if(dur<8){m.textContent="Prekratko ("+fmt(dur)+"). Snimi bar 20 sekundi.";m.className="msg bad";return}
+    m.textContent="Obrađujem snimak...";
+    try{var w=await uWav(new Blob(chunks,{type:rec.mimeType}));setGlas(w,"glas.wav","Snimljeno "+fmt(dur)+". Poslušaj, pa pošalji ili snimi ponovo.")}
+    catch(e){m.textContent="Snimak se ne može obraditi. Probaj ponovo.";m.className="msg bad"}
+  };
+  ctx=new (window.AudioContext||window.webkitAudioContext)();analyser=ctx.createAnalyser();analyser.fftSize=512;ctx.createMediaStreamSource(stream).connect(analyser);
+  var data=new Uint8Array(analyser.fftSize);
+  (function loop(){analyser.getByteTimeDomainData(data);var mx=0;for(var i=0;i<data.length;i++)mx=Math.max(mx,Math.abs(data[i]-128));$("meter").style.width=Math.min(100,mx/128*180)+"%";raf=requestAnimationFrame(loop)})();
+  rec.start();t0=Date.now();
+  $("snimi").hidden=true;$("stop").hidden=false;$("tajmer").hidden=false;$("meterW").hidden=false;$("plej").hidden=true;glasBlob=null;
+  m.textContent="Snima se...";
+  tick=setInterval(function(){var s=(Date.now()-t0)/1000;$("tajmer").textContent=fmt(s);if(s>=75)rec.state==="recording"&&rec.stop()},250);
+});
+$("stop").addEventListener("click",function(){if(rec&&rec.state==="recording")rec.stop()});
+$("glasFajl").addEventListener("change",async function(){
+  var f=this.files[0];if(!f)return;$("glasT").textContent=fileLabel(f);var m=$("glasMsg");m.className="msg";m.textContent="Obrađujem snimak...";
+  try{var w=await uWav(f);setGlas(w,"glas.wav","Učitano. Poslušaj, pa pošalji.")}
+  catch(e){if(f.size<5.5*1024*1024){setGlas(f,f.name,"Učitano bez obrade ("+fileLabel(f)+").")}else{m.textContent="Fajl je prevelik ili se ne može pročitati.";m.className="msg bad"}}
+});
+
+/* ---------- slanje ---------- */
+$("forma").addEventListener("submit",async function(ev){
+  ev.preventDefault();var pm=$("poruka");pm.className="msg";var btn=$("posalji");btn.disabled=true;pm.textContent="Šaljem...";
+  try{
+    var fd=new FormData();
+    ["ime","titula","firma","tel","mail","web","adresa","o","website_hp"].forEach(function(k){fd.append(k,$(k).value)});
+    var f=$("foto").files[0];if(f)fd.append("foto",await smanji(f,1400,.86),"foto.jpg");
+    var v=$("vizitka").files[0];if(v)fd.append("vizitka",await smanji(v,2200,.88),"vizitka.jpg");
+    if(glasBlob)fd.append("glas",glasBlob,glasIme);else{pm.textContent="Dodaj glas (snimi ili izaberi snimak).";pm.className="msg bad";btn.disabled=false;return}
+    var r=await fetch("/api/submit",{method:"POST",body:fd});
+    var j=await r.json().catch(function(){return{}});
+    if(!r.ok)throw new Error(j.error||"Greška "+r.status);
+    jobId=j.id;try{localStorage.setItem("vizitkaJob",jobId)}catch(e){}
+    pm.textContent="Poslato. Obrada je u toku.";prati();
+  }catch(e){pm.textContent="Nije uspelo: "+e.message;pm.className="msg bad"}
+  btn.disabled=false;
+});
+
+/* ---------- tok i rezultat ---------- */
+function qrSvg(t){var q=qrcode(0,"M");q.addData(t);q.make();return q.createSvgTag({cellSize:6,margin:0,scalable:true})}
+function render(d){
+  cur=d;$("tokPrazno").hidden=true;$("tok").hidden=false;
+  var m={novo:["U redu čekanja","work"],obrada:["U obradi","work"],gotovo:["Gotovo","ok"],greska:["Greška","bad"]}[d.status]||["U redu čekanja","work"];
+  $("stat").textContent=m[0];$("stat").className="stat "+m[1];
+  var ol=$("koraci");ol.innerHTML="";
+  KORACI.forEach(function(x){var li=document.createElement("li");if((d.koraci||{})[x[0]])li.className="on";li.appendChild(document.createElement("i"));li.appendChild(document.createTextNode(x[1]));ol.appendChild(li)});
+  var g=$("greska");if(d.poruka){g.hidden=false;g.textContent=d.poruka;g.className="msg"+(d.status==="greska"?" bad":"")}else g.hidden=true;
+  if(d.link){$("rez").hidden=false;$("link").textContent=d.link;if($("qr").dataset.l!==d.link){$("qr").innerHTML=qrSvg(d.link);$("qr").dataset.l=d.link}}else $("rez").hidden=true;
+  if(d.status==="gotovo"||d.status==="greska"){clearInterval(poll);poll=null}
+}
+async function osvezi(){try{var r=await fetch("/api/status?id="+encodeURIComponent(jobId));if(r.ok)render(await r.json())}catch(e){}}
+function prati(){if(!jobId)return;osvezi();clearInterval(poll);poll=setInterval(osvezi,4000)}
+$("kopiraj").addEventListener("click",function(){var t=cur&&cur.link;if(!t)return;var no=function(){var r=document.createRange();r.selectNodeContents($("link"));var s=getSelection();s.removeAllRanges();s.addRange(r);$("kopMsg").textContent="Link je označen, kopiraj ga ručno."};try{navigator.clipboard.writeText(t).then(function(){$("kopMsg").textContent="Link je kopiran."},no)}catch(e){no()}});
+$("snimiQr").addEventListener("click",function(){
+  if(!cur||!cur.link)return;
+  var svg=qrSvg(cur.link),c=document.createElement("canvas"),img=new Image();
+  img.onload=function(){c.width=c.height=1024;var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,1024,1024);x.drawImage(img,64,64,896,896);c.toBlob(function(b){var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="qr-vizitka.png";document.body.appendChild(a);a.click();a.remove()})};
+  img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+});
+prati();
+})();
+</script>
+</body>
+</html>
