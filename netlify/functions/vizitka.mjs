@@ -58,30 +58,40 @@ ${hasLogo ? `<link rel="apple-touch-icon" href="/v/${id}/logo"><link rel="icon" 
 <style>
 :root{--a:${accent};--ad:hsl(${h} 55% 12%);--bg:#f4f6f8;--ink:#0d1117;--mut:#5b6573}
 *{box-sizing:border-box}body{margin:0;font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:max(24px,env(safe-area-inset-bottom))}
-.top{background:linear-gradient(160deg,var(--ad),var(--a));color:#fff;padding:max(32px,env(safe-area-inset-top)) 22px 70px;text-align:center}
-.logo{width:112px;height:112px;margin:0 auto 18px;background:#fff;border-radius:28px;display:grid;place-items:center;box-shadow:0 14px 34px rgba(0,0,0,.28);overflow:hidden;padding:14px}
+.top{background:linear-gradient(160deg,var(--ad),var(--a));color:#fff;padding:max(20px,env(safe-area-inset-top)) 22px 150px;text-align:center}
+.logo{width:80px;height:80px;margin:0 auto 12px;border-radius:22px;background:#fff;border-radius:28px;display:grid;place-items:center;box-shadow:0 14px 34px rgba(0,0,0,.28);overflow:hidden;padding:14px}
 .logo img{max-width:100%;max-height:100%;object-fit:contain;display:block}.logo span{font-size:42px;font-weight:800;color:var(--a)}
-h1{margin:0;font-size:28px;line-height:1.15}.t{margin:6px 0 0;opacity:.92}.f{margin:2px 0 0;font-weight:700}
-.card{max-width:520px;margin:-46px auto 0;padding:0 16px;display:grid;gap:12px}
+h1{margin:0;font-size:24px;line-height:1.15}.t{margin:6px 0 0;opacity:.92}.f{margin:2px 0 0;font-weight:700}
+.card{max-width:520px;margin:-130px auto 0;padding:0 16px;display:grid;gap:12px}
 .row{display:flex;gap:14px;align-items:center;background:#fff;border-radius:18px;padding:14px 16px;text-decoration:none;color:inherit;box-shadow:0 2px 10px rgba(16,24,40,.07)}
 .ic{width:46px;height:46px;border-radius:14px;background:var(--a);display:grid;place-items:center;flex:none}.ic svg{width:24px;height:24px;fill:#fff}
 .tx{min-width:0}.tx small{display:block;color:var(--mut);font-size:13px}.tx b{display:block;font-size:17px;overflow-wrap:anywhere}
 .big{display:block;text-align:center;text-decoration:none;font-weight:800;font-size:18px;padding:17px;border-radius:18px;background:var(--ad);color:#fff}
 .alt{background:#fff;color:var(--ad);box-shadow:inset 0 0 0 2px var(--ad)}
+.qrfull{position:fixed;inset:0;z-index:50;background:#fff;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px}.qrfull[hidden]{display:none}.qrfull .q{width:min(88vw,62vh,460px);aspect-ratio:1}.qrfull .q svg{width:100%;height:100%;display:block}.qrfull b{font-size:22px}.qrfull button{background:#111;color:#fff;border:0;border-radius:99px;padding:13px 28px;font:inherit;font-weight:800;cursor:pointer}
+.qrc{display:block;width:100%;background:#fff;border:0;border-radius:24px;padding:20px 20px 14px;box-shadow:0 10px 30px rgba(0,0,0,.18);cursor:pointer;color:#555;font:inherit;font-size:13px}.qi{width:min(100%,300px);margin:0 auto 8px;aspect-ratio:1}.qi svg{width:100%;height:100%;display:block}
 .hint{background:#fff;border-radius:18px;padding:14px 16px;font-size:14px;color:var(--mut);display:none}
 .hint b{color:var(--ink)}
 @media(prefers-color-scheme:dark){:root{--bg:#0b0e13;--ink:#f1f4f8;--mut:#9aa6b6}.row,.hint{background:#161b22}.alt{background:#161b22;color:#fff;box-shadow:inset 0 0 0 2px #2d3748}}
 </style></head><body>
 <div class="top"><div class="logo">${hasLogo ? `<img src="/v/${id}/logo" alt="">` : `<span>${mono}</span>`}</div><h1>${esc(m.ime)}</h1>${m.titula ? `<p class="t">${esc(m.titula)}</p>` : ""}${m.firma ? `<p class="f">${esc(m.firma)}</p>` : ""}</div>
 <div class="card">
-<a class="big" href="${esc(m.link)}">▶ Otvori moju prezentaciju</a>
+<button class="qrc" id="qrb" type="button" aria-label="Uvećaj QR kod"><div class="qi" id="qi"></div><span>Dodirni za ceo ekran</span></button>
+<a class="big alt" href="${esc(m.link)}">▶ Otvori moju prezentaciju</a>
 ${rowHtml}
 <a class="big alt" href="/v/${id}/kontakt.vcf">Sačuvaj kontakt u telefon</a>
 <button class="big alt" id="inst" style="border:0;font:inherit;font-weight:800;cursor:pointer;display:none" type="button">Dodaj na početni ekran</button>
 <div class="hint" id="ios"><b>Dodaj na početni ekran:</b> pritisni dugme za deljenje u Safariju (kvadrat sa strelicom), pa „Dodaj na početni ekran”.</div>
 <div class="hint" id="and"><b>Dodaj na početni ekran:</b> otvori meni pregledača (tri tačke) pa „Dodaj na početni ekran”.</div>
 </div>
+<div class="qrfull" id="qf" hidden><div class="q" id="qq"></div><b>${esc(m.ime)}</b><button id="qx" type="button">Zatvori</button></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
+var wl=null;
+function mk(){var q=qrcode(0,"M");q.addData(location.origin+"/v/${id}");q.make();return q.createSvgTag({cellSize:6,margin:0,scalable:true})}
+try{document.getElementById("qi").innerHTML=mk()}catch(e){}
+document.getElementById("qrb").onclick=async function(){document.getElementById("qq").innerHTML=mk();document.getElementById("qf").hidden=false;try{wl=await navigator.wakeLock.request("screen")}catch(e){}};
+document.getElementById("qx").onclick=function(){document.getElementById("qf").hidden=true;try{wl&&wl.release()}catch(e){}};
 var ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua),standalone=window.matchMedia("(display-mode: standalone)").matches||navigator.standalone;
 if(!standalone){if(ios)document.getElementById("ios").style.display="block";else document.getElementById("and").style.display="block"}
 var dp=null;window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e;document.getElementById("and").style.display="none";var b=document.getElementById("inst");b.style.display="block";b.onclick=function(){dp.prompt()}});
