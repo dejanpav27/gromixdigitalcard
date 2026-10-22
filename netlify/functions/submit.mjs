@@ -11,7 +11,7 @@ export default async (req) => {
 
   const files = {};
   let total = 0;
-  for (const k of ["foto", "glas", "vizitka"]) {
+  for (const k of ["logo", "foto", "glas", "vizitka"]) {
     const f = fd.get(k);
     if (f && typeof f === "object" && f.size) { files[k] = f; total += f.size; }
   }

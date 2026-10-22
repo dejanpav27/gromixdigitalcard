@@ -74,6 +74,7 @@ ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:v
 .qrfull{position:fixed;inset:0;z-index:50;background:#fff;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));text-align:center}
 .qrfull .q{width:min(88vw,66vh,460px);aspect-ratio:1}.qrfull .q svg{width:100%;height:100%;display:block}
 .qrfull b{font-size:22px}.qrfull button{background:#111;color:#fff;border:0;border-radius:99px;padding:13px 28px;font:inherit;font-weight:800;cursor:pointer}
+.wait{display:flex;flex-direction:column;gap:10px;background:var(--field);border-radius:14px;padding:14px 16px}.wait p{margin:0;font-size:14px}
 .link-btn{background:none;border:0;color:var(--muted);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:8px;align-self:center}
 [hidden]{display:none!important}
 </style>
@@ -132,6 +133,7 @@ ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:v
   <section class="card" id="tok" hidden aria-live="polite">
     <span class="stat" id="stat"></span>
     <ol class="tok" id="koraci"></ol>
+    <div class="wait" id="cekaj"><p><b>Ovo traje nekoliko minuta.</b> Možeš da zatvoriš stranicu. Kad se vratiš na isti link, vidiš rezultat.</p><button class="btn ghost" id="kopPrati" type="button">Kopiraj link za povratak</button><p class="msg" id="kopPratiMsg"></p></div>
     <p class="msg" id="greska" hidden></p>
     <div class="res" id="rez" hidden>
       <div class="done" id="gotovo" hidden><h3>Tvoja vizitka je gotova</h3><p id="gotovoIme"></p></div>
@@ -155,7 +157,8 @@ ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:v
 var $=function(i){return document.getElementById(i)};
 var KORACI=[["asistent","Asistent"],["glas","Tvoj glas"],["kartica","Kontakt kartica"],["prezentacija","Vizitka sa dodirnim poljima"],["audio","Govor vizitke"],["link","Link i QR kod"]];
 var jobId=null,glasBlob=null,glasIme="glas.wav",cur=null,poll=null;
-try{jobId=localStorage.getItem("vizitkaJob")}catch(e){}
+try{var qj=new URLSearchParams(location.search).get("j");if(qj&&/^j[a-z0-9]{1,30}$/.test(qj))jobId=qj}catch(e){}
+if(!jobId){try{jobId=localStorage.getItem("vizitkaJob")}catch(e){}}
 
 /* ---------- slike ---------- */
 function fileLabel(f){return f.name+" ("+Math.round(f.size/1024)+" KB)"}
@@ -178,7 +181,7 @@ function wav(buf){
 async function uWav(blob){
   var ab=await blob.arrayBuffer(),AC=window.AudioContext||window.webkitAudioContext,c=new AC();
   var dec=await new Promise(function(r,j){c.decodeAudioData(ab,r,j)});c.close&&c.close();
-  var sr=24000,len=Math.ceil(dec.duration*sr),oc=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(1,len,sr),s=oc.createBufferSource();
+  var sr=16000,len=Math.ceil(dec.duration*sr),oc=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(1,len,sr),s=oc.createBufferSource();
   s.buffer=dec;s.connect(oc.destination);s.start();
   return wav(await oc.startRendering());
 }
@@ -224,7 +227,7 @@ $("forma").addEventListener("submit",async function(ev){
     var r=await fetch("/api/submit",{method:"POST",body:fd});
     var j=await r.json().catch(function(){return{}});
     if(!r.ok)throw new Error(j.error||"Greška "+r.status);
-    jobId=j.id;try{localStorage.setItem("vizitkaJob",jobId)}catch(e){}
+    jobId=j.id;try{localStorage.setItem("vizitkaJob",jobId)}catch(e){}try{history.replaceState(null,"","?j="+jobId)}catch(e){}
     pm.textContent="Poslato.";prati();
   }catch(e){pm.textContent="Nije uspelo: "+e.message;pm.className="msg bad"}
   btn.disabled=false;
@@ -239,12 +242,13 @@ function render(d){
   var ol=$("koraci");ol.innerHTML="";
   KORACI.forEach(function(x){var li=document.createElement("li");if((d.koraci||{})[x[0]])li.className="on";li.appendChild(document.createElement("i"));li.appendChild(document.createTextNode(x[1]));ol.appendChild(li)});
   var g=$("greska");if(d.poruka){g.hidden=false;g.textContent=d.poruka;g.className="msg"+(d.status==="greska"?" bad":"")}else g.hidden=true;
-  if(d.link){$("rez").hidden=false;$("link").textContent=d.link;$("otvori").href=d.link;var fin=d.status==="gotovo";$("rez").className="res"+(fin?" fin":"");$("gotovo").hidden=!fin;$("savet").hidden=!fin;$("gotovoIme").textContent=d.ime||"";if($("qr").dataset.l!==d.link){$("qr").innerHTML=qrSvg(d.link);$("qr").dataset.l=d.link}}else $("rez").hidden=true;
+  if(d.link){$("rez").hidden=false;$("link").textContent=d.link;$("otvori").href=d.link;var fin=d.status==="gotovo";$("rez").className="res"+(fin?" fin":"");$("gotovo").hidden=!fin;$("cekaj").hidden=d.status==="gotovo"||d.status==="greska";$("savet").hidden=!fin;$("gotovoIme").textContent=d.ime||"";if($("qr").dataset.l!==d.link){$("qr").innerHTML=qrSvg(d.link);$("qr").dataset.l=d.link}}else $("rez").hidden=true;
   if(d.status==="gotovo"||d.status==="greska"){clearInterval(poll);poll=null}
 }
 async function osvezi(){try{var r=await fetch("/api/status?id="+encodeURIComponent(jobId));if(r.ok)render(await r.json())}catch(e){}}
 function prati(){if(!jobId)return;osvezi();clearInterval(poll);poll=setInterval(osvezi,4000)}
 $("kopiraj").addEventListener("click",function(){var t=cur&&cur.link;if(!t)return;var no=function(){var r=document.createRange();r.selectNodeContents($("link"));var s=getSelection();s.removeAllRanges();s.addRange(r);$("kopMsg").textContent="Link je označen, kopiraj ga ručno."};try{navigator.clipboard.writeText(t).then(function(){$("kopMsg").textContent="Link je kopiran."},no)}catch(e){no()}});
+$("kopPrati").addEventListener("click",function(){var u=location.origin+location.pathname+"?j="+jobId,m=$("kopPratiMsg");try{navigator.clipboard.writeText(u).then(function(){m.textContent="Link je kopiran. Sačuvaj ga."},function(){m.textContent=u})}catch(e){m.textContent=u}});
 var wl=null;
 $("celi").addEventListener("click",async function(){if(!cur||!cur.link)return;$("fullQr").innerHTML=qrSvg(cur.link);$("fullIme").textContent=cur.ime||"";$("full").hidden=false;try{wl=await navigator.wakeLock.request("screen")}catch(e){}});
 $("zatvori").addEventListener("click",function(){$("full").hidden=true;try{wl&&wl.release()}catch(e){}wl=null});
@@ -254,7 +258,7 @@ $("snimiQr").addEventListener("click",function(){
   img.onload=function(){c.width=c.height=1024;var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,1024,1024);x.drawImage(img,64,64,896,896);c.toBlob(function(b){var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="qr-vizitka.png";document.body.appendChild(a);a.click();a.remove()})};
   img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
 });
-$("nova").addEventListener("click",function(){try{localStorage.removeItem("vizitkaJob")}catch(e){}location.reload()});
+$("nova").addEventListener("click",function(){try{localStorage.removeItem("vizitkaJob")}catch(e){}location.href=location.pathname});
 prati();
 })();
 </script>

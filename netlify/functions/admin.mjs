@@ -26,7 +26,7 @@ export default async (req) => {
   if (req.method === "GET") {
     const file = url.searchParams.get("file");
     if (!file) return Response.json(await store.get(`${id}/meta`, { type: "json" }));
-    if (!["foto", "glas", "vizitka"].includes(file)) return new Response("Bad file", { status: 400 });
+    if (!["logo", "foto", "glas", "vizitka"].includes(file)) return new Response("Bad file", { status: 400 });
     const r = await store.getWithMetadata(`${id}/${file}`, { type: "arrayBuffer" });
     if (!r) return new Response("Not found", { status: 404 });
     return new Response(r.data, { headers: { "content-type": r.metadata?.type || "application/octet-stream" } });
