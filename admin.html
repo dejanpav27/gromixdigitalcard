@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Vizitka admin</title>
+<style>
+:root{--bg:#F4F6FA;--s:#fff;--ink:#0F172A;--mut:#5B6578;--line:#DDE3EE;--acc:#2F5BFF;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0C1220;--s:#141C2E;--ink:#E8EDF7;--mut:#97A3BB;--line:#26314A;--acc:#6C8BFF;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif;padding:24px 16px}
+.w{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.c{background:var(--s);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+h1{margin:0;font-size:22px}h3{margin:0;font-size:16px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+button,a.b{font:inherit;font-weight:600;border:0;border-radius:8px;padding:8px 14px;background:var(--acc);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+button.g{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.m{color:var(--mut);font-size:13px;overflow-wrap:anywhere}
+dl{display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 12px;margin:0;font-size:14px}dt{color:var(--mut)}dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+label{display:flex;gap:6px;align-items:center;font-size:14px}
+</style>
+</head>
+<body>
+<div class="w">
+  <h1>Vizitka admin</h1>
+  <div class="c" id="login"><div class="r"><input id="tok" type="password" placeholder="Admin token" style="flex:1"><button id="ulaz">Uđi</button></div><span class="m" id="lm"></span></div>
+  <div id="lista" class="w" hidden></div>
+</div>
+<script>
+var T="";try{T=sessionStorage.getItem("at")||""}catch(e){}
+var KOR=[["asistent","Asistent"],["glas","Glas"],["kartica","Kartica"],["prezentacija","Prezentacija"],["audio","Audio"],["link","Link"]];
+function h(p,o){o=o||{};o.headers=Object.assign({"x-admin-token":T},o.headers||{});return fetch("/api/admin"+p,o)}
+async function ucitaj(){
+  var r=await h("");if(r.status===401){$("lm").textContent="Pogrešan token.";return}
+  $("login").hidden=true;$("lista").hidden=false;var L=await r.json();var root=$("lista");root.innerHTML="";
+  if(!L.length){root.innerHTML='<div class="c m">Još nema unosa.</div>'}
+  L.forEach(function(j){
+    var c=document.createElement("div");c.className="c";
+    c.innerHTML='<h3></h3><div class="m"></div><dl></dl><div class="r files"></div><hr style="border:0;border-top:1px solid var(--line);width:100%"><div class="r steps"></div><div class="r"><input class="lk" placeholder="https://gromix.eu/presentation/..." style="flex:1;min-width:220px"><select class="st"><option value="novo">novo</option><option value="obrada">obrada</option><option value="gotovo">gotovo</option><option value="greska">greska</option></select><button class="sv">Sačuvaj</button></div>';
+    c.querySelector("h3").textContent=j.ime+(j.firma?" · "+j.firma:"");
+    c.querySelector(".m").textContent=j.id+" · "+new Date(j.kreirano).toLocaleString("sr-RS");
+    var dl=c.querySelector("dl");[["Pozicija",j.titula],["Telefon",j.tel],["Imejl",j.mail],["Sajt",j.web],["Adresa",j.adresa],["O vama",j.o]].forEach(function(p){if(!p[1])return;var a=document.createElement("dt");a.textContent=p[0];var b=document.createElement("dd");b.textContent=p[1];dl.appendChild(a);dl.appendChild(b)});
+    Object.keys(j.fajlovi||{}).forEach(function(k){var b=document.createElement("button");b.className="g";b.textContent="Preuzmi "+k;b.onclick=async function(){var r=await h("?id="+j.id+"&file="+k);var bl=await r.blob();var a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download=j.id+"-"+k+(k==="glas"?".wav":k==="logo"?".png":".jpg");a.click()};c.querySelector(".files").appendChild(b)});
+    var ks=c.querySelector(".steps"),chk={};KOR.forEach(function(x){var l=document.createElement("label"),i=document.createElement("input");i.type="checkbox";i.checked=!!(j.koraci||{})[x[0]];chk[x[0]]=i;l.appendChild(i);l.appendChild(document.createTextNode(x[1]));ks.appendChild(l)});
+    c.querySelector(".lk").value=j.link||"";c.querySelector(".st").value=j.status||"novo";
+    c.querySelector(".sv").onclick=async function(){var k={};for(var n in chk)k[n]=chk[n].checked;await h("?id="+j.id,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({status:c.querySelector(".st").value,link:c.querySelector(".lk").value.trim(),koraci:k})});this.textContent="Sačuvano";};
+    root.appendChild(c);
+  });
+}
+function $(i){return document.getElementById(i)}
+$("ulaz").onclick=function(){T=$("tok").value.trim();try{sessionStorage.setItem("at",T)}catch(e){}ucitaj()};
+if(T)ucitaj();
+</script>
+</body>
+</html>
