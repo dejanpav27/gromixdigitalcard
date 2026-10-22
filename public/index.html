@@ -100,7 +100,7 @@ ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:v
         <label>Sajt<input id="web" type="text" placeholder="firma.rs" inputmode="url"></label>
         <label>Adresa ili grad<input id="adresa" type="text"></label>
       </div>
-      <label>Nekoliko rečenica o vama <small>(nije obavezno)</small><textarea id="o" placeholder="Čime se bavite, za koga radite i šta nudite. Na ovo odgovara vaš asistent."></textarea></label>
+      <label>Nekoliko rečenica o vama <small>(nije obavezno, ali ovo čini vizitku ličnom)</small><textarea id="o" placeholder="Napišite kao da govorite sami, npr. „Više od deset godina radim na…”. Ovo vaša vizitka izgovara naglas, a na osnovu toga odgovara i asistent."></textarea></label>
       <input class="hp" id="website_hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
     </section>
 
@@ -144,7 +144,7 @@ ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:v
       <button class="btn ghost" id="kopiraj" type="button">Kopiraj link</button>
       <button class="btn ghost" id="snimiQr" type="button">Sačuvaj QR kao sliku</button>
       <p class="msg" id="kopMsg"></p>
-      <p class="msg" id="savet" hidden>Da ti bude pri ruci, otvori link na telefonu i izaberi „Dodaj na početni ekran”.</p>
+      <p class="msg" id="savet" hidden>Otvori link na telefonu, pa na vizitki pritisni „Dodaj na početni ekran”.</p>
     </div>
     <button class="link-btn" id="nova" type="button">Napravi novu vizitku</button>
   </section>
@@ -236,6 +236,7 @@ $("forma").addEventListener("submit",async function(ev){
 /* ---------- tok i rezultat ---------- */
 function qrSvg(t){var q=qrcode(0,"M");q.addData(t);q.make();return q.createSvgTag({cellSize:6,margin:0,scalable:true})}
 function render(d){
+  if(d.link)d.link=location.origin+"/v/"+jobId;   // QR i link vode na našu stranicu vizitke (može na početni ekran)
   cur=d;$("forma").hidden=true;$("tok").hidden=false;window.scrollTo(0,0);
   var m={novo:["U redu čekanja","work"],obrada:["Pravimo vizitku","work"],gotovo:["Gotovo","ok"],greska:["Nešto nije prošlo","bad"]}[d.status]||["U redu čekanja","work"];
   $("stat").textContent=m[0];$("stat").className="stat "+m[1];
