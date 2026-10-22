@@ -54,6 +54,13 @@ ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:v
 .qr{background:#fff;padding:12px;border-radius:12px;border:1px solid var(--line);width:220px;max-width:100%}
 .qr svg{display:block;width:100%;height:auto}
 .link{font-family:ui-monospace,Menlo,monospace;font-size:13px;overflow-wrap:anywhere;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.done{display:flex;flex-direction:column;gap:6px;width:100%}.done h3{margin:0;font-size:22px;letter-spacing:-.01em}.done p{margin:0;color:var(--muted);font-size:14px}
+.res.fin{align-items:stretch;border:1px solid var(--ok);border-radius:14px;padding:18px;background:var(--bg)}
+.res.fin .qr{width:min(300px,100%);align-self:center}
+a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.full{position:fixed;inset:0;z-index:50;background:#fff;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));text-align:center}
+.full .q{width:min(88vw,66vh,460px);aspect-ratio:1}.full .q svg{width:100%;height:100%;display:block}
+.full b{font-size:22px}.full button{background:#111;color:#fff;border:0;border-radius:99px;padding:12px 26px;font:inherit;font-weight:700;cursor:pointer}
 .empty{color:var(--muted);margin:0}
 [hidden]{display:none!important}
 </style>
@@ -62,7 +69,7 @@ ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:v
 <div class="wrap">
   <div class="head">
     <h1>Digitalna vizitka</h1>
-    <p class="sub">Unesi podatke, sliku i glas. Iz toga se prave asistent, vizitka sa dodirnim poljima, link i QR kod.</p>
+    <p class="sub">Unesi podatke, logo firme i glas. Iz toga se prave asistent, vizitka sa dodirnim poljima, link i QR kod.</p>
   </div>
 
   <form class="card sec" id="forma" autocomplete="off">
@@ -82,9 +89,9 @@ ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:v
     </div>
 
     <div>
-      <h2>Slike</h2>
+      <h2>Logo i vizitka</h2>
       <div class="sec" style="gap:12px">
-        <label class="drop"><input id="foto" type="file" accept="image/png,image/jpeg,image/webp"><img class="thumb" id="fotoImg" alt="" hidden><span class="thumb" id="fotoPh"></span><span class="t"><b>Slika osobe</b><span id="fotoT">Izaberi sliku (JPG, PNG)</span></span></label>
+        <label class="drop"><input id="logo" type="file" accept="image/png,image/jpeg,image/webp"><img class="thumb" id="logoImg" alt="" hidden><span class="thumb" id="logoPh"></span><span class="t"><b>Logo firme</b><span id="logoT">Izaberi logo (PNG ili JPG). Boje vizitke se biraju prema njemu.</span></span></label>
         <label class="drop"><input id="vizitka" type="file" accept="image/png,image/jpeg,image/webp"><span class="thumb"></span><span class="t"><b>Slika vizitke <small>(nije obavezno)</small></b><span id="vizT">Ako nemaš, pravi se iz unetih podataka</span></span></label>
       </div>
     </div>
@@ -120,17 +127,22 @@ ol.tok li.on{color:var(--ink)}ol.tok li.on i{background:var(--ok);border-color:v
       <span class="stat" id="stat"></span>
       <ol class="tok" id="koraci"></ol>
       <div class="res" id="rez" hidden>
+        <div class="done" id="gotovo" hidden><h3>Tvoja vizitka je gotova</h3><p id="gotovoIme"></p></div>
         <div class="qr" id="qr"></div>
         <div class="link" id="link"></div>
         <div class="row">
+          <a class="btn" id="otvori" href="#" target="_blank" rel="noopener">Otvori vizitku</a>
           <button class="btn" id="kopiraj" type="button">Kopiraj link</button>
+          <button class="btn ghost" id="celi" type="button">QR preko celog ekrana</button>
           <button class="btn ghost" id="snimiQr" type="button">Sačuvaj QR</button>
         </div>
         <p class="msg" id="kopMsg"></p>
+        <p class="msg" id="savet" hidden>Da ti bude pri ruci: otvori link na telefonu i izaberi „Dodaj na početni ekran”. QR možeš i da sačuvaš kao sliku.</p>
       </div>
       <p class="msg" id="greska" hidden></p>
     </div>
   </section>
+  <div class="full" id="full" hidden><div class="q" id="fullQr"></div><b id="fullIme"></b><button id="zatvori" type="button">Zatvori</button></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
@@ -143,9 +155,9 @@ try{jobId=localStorage.getItem("vizitkaJob")}catch(e){}
 
 /* ---------- slike ---------- */
 function fileLabel(f){return f.name+" ("+Math.round(f.size/1024)+" KB)"}
-$("foto").addEventListener("change",function(){var f=this.files[0];if(!f)return;$("fotoT").textContent=fileLabel(f);$("fotoImg").src=URL.createObjectURL(f);$("fotoImg").hidden=false;$("fotoPh").hidden=true});
+$("logo").addEventListener("change",function(){var f=this.files[0];if(!f)return;$("logoT").textContent=fileLabel(f);$("logoImg").src=URL.createObjectURL(f);$("logoImg").hidden=false;$("logoPh").hidden=true});
 $("vizitka").addEventListener("change",function(){var f=this.files[0];if(f)$("vizT").textContent=fileLabel(f)});
-function smanji(file,maxSide,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){var s=Math.min(1,maxSide/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);c.toBlob(function(b){URL.revokeObjectURL(u);b?res(b):rej(new Error("slika"))},"image/jpeg",q)};img.onerror=function(){rej(new Error("Slika se ne može pročitati"))};img.src=u})}
+function smanji(file,maxSide,q,png){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){var s=Math.min(1,maxSide/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);c.toBlob(function(b){URL.revokeObjectURL(u);b?res(b):rej(new Error("slika"))},png?"image/png":"image/jpeg",q)};img.onerror=function(){rej(new Error("Slika se ne može pročitati"))};img.src=u})}
 
 /* ---------- glas: snimanje i pretvaranje u WAV 24 kHz mono ---------- */
 var rec=null,stream=null,chunks=[],t0=0,tick=null,ctx=null,analyser=null,raf=null;
@@ -203,7 +215,7 @@ $("forma").addEventListener("submit",async function(ev){
   try{
     var fd=new FormData();
     ["ime","titula","firma","tel","mail","web","adresa","o","website_hp"].forEach(function(k){fd.append(k,$(k).value)});
-    var f=$("foto").files[0];if(f)fd.append("foto",await smanji(f,1400,.86),"foto.jpg");
+    var f=$("logo").files[0];if(f)fd.append("logo",await smanji(f,1000,.92,true),"logo.png");
     var v=$("vizitka").files[0];if(v)fd.append("vizitka",await smanji(v,2200,.88),"vizitka.jpg");
     if(glasBlob)fd.append("glas",glasBlob,glasIme);else{pm.textContent="Dodaj glas (snimi ili izaberi snimak).";pm.className="msg bad";btn.disabled=false;return}
     var r=await fetch("/api/submit",{method:"POST",body:fd});
@@ -224,12 +236,15 @@ function render(d){
   var ol=$("koraci");ol.innerHTML="";
   KORACI.forEach(function(x){var li=document.createElement("li");if((d.koraci||{})[x[0]])li.className="on";li.appendChild(document.createElement("i"));li.appendChild(document.createTextNode(x[1]));ol.appendChild(li)});
   var g=$("greska");if(d.poruka){g.hidden=false;g.textContent=d.poruka;g.className="msg"+(d.status==="greska"?" bad":"")}else g.hidden=true;
-  if(d.link){$("rez").hidden=false;$("link").textContent=d.link;if($("qr").dataset.l!==d.link){$("qr").innerHTML=qrSvg(d.link);$("qr").dataset.l=d.link}}else $("rez").hidden=true;
+  if(d.link){$("rez").hidden=false;$("link").textContent=d.link;$("otvori").href=d.link;var fin=d.status==="gotovo";$("rez").className="res"+(fin?" fin":"");$("gotovo").hidden=!fin;$("savet").hidden=!fin;$("gotovoIme").textContent=d.ime||"";if($("qr").dataset.l!==d.link){$("qr").innerHTML=qrSvg(d.link);$("qr").dataset.l=d.link}}else $("rez").hidden=true;
   if(d.status==="gotovo"||d.status==="greska"){clearInterval(poll);poll=null}
 }
 async function osvezi(){try{var r=await fetch("/api/status?id="+encodeURIComponent(jobId));if(r.ok)render(await r.json())}catch(e){}}
 function prati(){if(!jobId)return;osvezi();clearInterval(poll);poll=setInterval(osvezi,4000)}
 $("kopiraj").addEventListener("click",function(){var t=cur&&cur.link;if(!t)return;var no=function(){var r=document.createRange();r.selectNodeContents($("link"));var s=getSelection();s.removeAllRanges();s.addRange(r);$("kopMsg").textContent="Link je označen, kopiraj ga ručno."};try{navigator.clipboard.writeText(t).then(function(){$("kopMsg").textContent="Link je kopiran."},no)}catch(e){no()}});
+var wl=null;
+$("celi").addEventListener("click",async function(){if(!cur||!cur.link)return;$("fullQr").innerHTML=qrSvg(cur.link);$("fullIme").textContent=cur.ime||"";$("full").hidden=false;try{wl=await navigator.wakeLock.request("screen")}catch(e){}});
+$("zatvori").addEventListener("click",function(){$("full").hidden=true;try{wl&&wl.release()}catch(e){}wl=null});
 $("snimiQr").addEventListener("click",function(){
   if(!cur||!cur.link)return;
   var svg=qrSvg(cur.link),c=document.createElement("canvas"),img=new Image();
